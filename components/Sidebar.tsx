@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, UploadCloud, History } from "lucide-react";
+import { Home, UploadCloud, History, Radio } from "lucide-react";
 
 export function Sidebar() {
   return (
@@ -15,6 +15,13 @@ export function Sidebar() {
         >
           <Home size={18} />
           Dashboard
+        </Link>
+        <Link
+          href="/sensor"
+          className="flex items-center gap-3 p-3 rounded-md hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <Radio size={18} />
+          Sensor em tempo real
         </Link>
         <Link
           href="/upload"

@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# credenciais do firmware
+firmware/**/secrets.h
+!.env.example
+.neon
