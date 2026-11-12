@@ -14,7 +14,11 @@ export function DeleteRowButton({ uploadId }: { uploadId: string }) {
       size="icon"
       title="Excluir este arquivo"
       disabled={isPending}
-      onClick={() => startTransition(() => deleteUpload(uploadId))}
+      onClick={() =>
+        startTransition(async () => {
+          await deleteUpload(uploadId);
+        })
+      }
     >
       <Trash2 size={16} />
     </Button>
@@ -30,7 +34,9 @@ export function ClearAllButton() {
         "Tem certeza que deseja apagar TODOS os dados e arquivos do Dashboard? Essa ação não pode ser desfeita.",
       )
     ) {
-      startTransition(() => clearAllHistory());
+      startTransition(async () => {
+        await clearAllHistory();
+      });
     }
   };
 
