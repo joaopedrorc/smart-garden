@@ -49,7 +49,7 @@ export function DashboardMetrics({ records }: { records: any[] }) {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
@@ -107,11 +107,11 @@ export function DashboardMetrics({ records }: { records: any[] }) {
           <CardHeader>
             <CardTitle>Clima: Temp. vs Umidade (Ar)</CardTitle>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[260px] md:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={30} />
+                <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={50} />
                 <YAxis yAxisId="left" />
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
@@ -141,11 +141,11 @@ export function DashboardMetrics({ records }: { records: any[] }) {
           <CardHeader>
             <CardTitle>Solo: Resistência/Capacitância</CardTitle>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[260px] md:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={30} />
+                <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={50} />
                 <YAxis reversed domain={[0, 1023]} />
                 <Tooltip />
                 <Legend />

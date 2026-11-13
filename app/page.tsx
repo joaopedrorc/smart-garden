@@ -5,9 +5,9 @@ export default async function DashboardPage() {
   const db = await getTelemetryDB();
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="space-y-6 p-4 md:space-y-8 md:p-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Visão Geral</h1>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Visão Geral</h1>
         <p className="text-muted-foreground">
           Métricas consolidadas de todos os arquivos enviados.
         </p>

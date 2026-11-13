@@ -86,7 +86,7 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Temperatura do ar</CardTitle>
@@ -108,7 +108,7 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="col-span-2 md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Umidade do solo</CardTitle>
             <Sprout className="h-4 w-4 text-green-500" />
@@ -125,7 +125,7 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="col-span-2 md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Nó sensor</CardTitle>
             <Wifi className={`h-4 w-4 ${online ? "text-green-500" : "text-muted-foreground"}`} />
@@ -144,13 +144,13 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
           <CardHeader>
             <CardTitle>Ar: temperatura e umidade relativa</CardTitle>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[260px] md:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={40} />
-                <YAxis yAxisId="left" unit="°C" />
-                <YAxis yAxisId="right" orientation="right" unit="%" domain={[0, 100]} />
+                <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={50} />
+                <YAxis yAxisId="left" unit="°C" width={44} tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="right" orientation="right" unit="%" domain={[0, 100]} width={40} tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Legend />
                 <Line yAxisId="left" type="monotone" dataKey="Temperatura" stroke="#ef4444" strokeWidth={2} dot={false} connectNulls />
@@ -169,12 +169,12 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
                 ` ${soilHidden} leitura(s) com a sonda fora da terra não aparecem no gráfico.`}
             </p>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[260px] md:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={40} />
-                <YAxis reversed domain={soilDomain} allowDecimals={false} width={56} />
+                <XAxis dataKey="time" tick={{ fontSize: 11 }} minTickGap={50} />
+                <YAxis reversed domain={soilDomain} allowDecimals={false} width={44} tick={{ fontSize: 11 }} />
                 {SOIL_BANDS.map((band, i) => {
                   const [y1, y2] = bandRange(i);
                   return (
@@ -219,7 +219,31 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <table className="w-full text-sm">
+          <ul className="space-y-2 sm:hidden">
+            {SOIL_BANDS.map((band, i) => {
+              const [min, max] = bandRange(i);
+              const current = soilBand?.key === band.key;
+              return (
+                <li
+                  key={band.key}
+                  className={`rounded-lg border p-3 text-sm ${current ? "border-foreground/30 bg-muted/60" : ""}`}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className={`font-medium ${band.textClass}`}>
+                      {band.label}
+                      {current && <span className="ml-2 text-xs text-muted-foreground">(agora)</span>}
+                    </span>
+                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                      {fmtRaw(min)} a {fmtRaw(max - 1)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs">{band.advice}</p>
+                </li>
+              );
+            })}
+          </ul>
+
+          <table className="hidden w-full text-sm sm:table">
             <thead>
               <tr className="border-b text-left text-muted-foreground">
                 <th className="py-2 pr-4 font-medium">Estado</th>
