@@ -18,10 +18,10 @@ export default async function HistoryPage() {
   );
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <div className="flex justify-between items-end">
+    <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
             Histórico de Uploads
           </h1>
           <p className="text-muted-foreground">
@@ -41,7 +41,23 @@ export default async function HistoryPage() {
               Nenhum upload registrado ainda.
             </p>
           ) : (
-            <Table>
+            <>
+            {/* Celular: um cartão por arquivo, com a ação sempre visível */}
+            <ul className="divide-y sm:hidden">
+              {sortedUploads.map((upload) => (
+                <li key={upload.id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{upload.filename}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(upload.date).toLocaleString("pt-BR")} · {upload.recordCount} registros
+                    </p>
+                  </div>
+                  <DeleteRowButton uploadId={upload.id} />
+                </li>
+              ))}
+            </ul>
+
+            <Table className="hidden sm:table">
               <TableHeader>
                 <TableRow>
                   <TableHead>Data do Upload</TableHead>
@@ -71,6 +87,7 @@ export default async function HistoryPage() {
                 ))}
               </TableBody>
             </Table>
+            </>
           )}
         </CardContent>
       </Card>

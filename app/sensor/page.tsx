@@ -33,10 +33,10 @@ export default async function SensorPage() {
     : [];
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="space-y-6 p-4 md:space-y-8 md:p-8">
       <AutoRefresh intervalMs={60_000} />
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Sensor em tempo real</h1>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Sensor em tempo real</h1>
         <p className="text-muted-foreground">
           Telemetria do nó ESP32 instalado na horta (últimas {WINDOW_HOURS} h).
           Atualização automática a cada minuto.

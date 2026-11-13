@@ -40,7 +40,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto mt-10">
+    <div className="mx-auto max-w-2xl p-4 md:mt-10 md:p-8">
       <Card>
         <CardHeader>
           <CardTitle>Upload de Telemetria</CardTitle>
