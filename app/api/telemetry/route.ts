@@ -6,7 +6,7 @@ import { getPool } from "@/lib/db";
 //
 // Corpo esperado:
 // {
-//   "device_id": "horta-franca-01",
+//   "device_id": "horta-uberlandia-01",
 //   "rssi": -61,
 //   "readings": [
 //     { "ts": 1731427200, "temperature_c": 24.8, "relative_humidity": 61,

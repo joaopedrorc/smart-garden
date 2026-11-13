@@ -44,7 +44,7 @@ export default async function SensorPage() {
       </div>
 
       <SensorLive
-        device={device ? { id: device.id, online: device.online } : null}
+        device={device ? { id: device.id, name: device.name, online: device.online } : null}
         readings={readings.map((r) => ({ ...r, measured_at: r.measured_at.toISOString() }))}
       />
     </div>

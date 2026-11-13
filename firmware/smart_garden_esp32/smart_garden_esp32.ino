@@ -1,7 +1,7 @@
 /*
  * Smart Garden 2.0 — nó sensor ESP32 (DOIT DevKit V1, ESP32-WROOM-32)
  *
- * Lê temperatura e umidade do ar (DHT) e umidade do solo (sensor capacitivo),
+ * Lê temperatura e umidade do ar (DHT11) e umidade do solo (sensor resistivo),
  * marca cada leitura com horário UTC sincronizado por NTP e envia lotes em JSON
  * para a API do Smart Garden via HTTPS. Leituras ficam num buffer em LittleFS
  * até o envio ser confirmado, então quedas de Wi-Fi ou da API não perdem dados.
@@ -27,20 +27,15 @@
 // ---------- Pinos ----------
 #define DHT_PIN    4
 #define DHT_TYPE   DHT11   // troque para DHT22 se for o sensor usado
-#define SOIL_PIN   34      // ADC1: o ADC2 não funciona com o Wi-Fi ativo
-#define LED_GREEN  25
-#define LED_YELLOW 26
-#define LED_RED    27
+#define SOIL_PIN   34      // AO do módulo; ADC1 (o ADC2 não funciona com o Wi-Fi ativo)
+#define SOIL_POWER_PIN 25  // VCC do módulo: energizado só durante a leitura
 
 // ---------- Calibração do sensor de solo (ADC de 12 bits, 0–4095) ----------
-// Sensor capacitivo: quanto mais seco, MAIOR a leitura.
-// Calibre: SOIL_DRY_RAW = sensor no ar; SOIL_WET_RAW = sensor num copo d'água.
-#define SOIL_DRY_RAW 3300
-#define SOIL_WET_RAW 1400
-
-// Faixas do estado do solo (mesma lógica de LEDs do PI 3)
-#define SOIL_DRY_BELOW_PCT 40.0   // abaixo: seco (LED vermelho)
-#define SOIL_WET_ABOVE_PCT 80.0   // acima: encharcado (LED amarelo)
+// Sensor resistivo (sonda em garfo + módulo LM393): quanto mais seco, MAIOR a leitura.
+// Calibre: SOIL_DRY_RAW = sonda no ar; SOIL_WET_RAW = sonda num copo d'água.
+#define SOIL_DRY_RAW 4095
+#define SOIL_WET_RAW 1500
+// O estado do solo (seco / ideal / encharcado) é calculado no aplicativo
 
 // ---------- Temporização ----------
 const uint32_t READ_INTERVAL_MS  = 60UL * 1000UL;  // 1 leitura por minuto
@@ -59,6 +54,28 @@ uint32_t lastWifiAttemptMs = 0;
 
 // ---------- Wi-Fi e relógio ----------
 
+// Mostra o motivo da falha e as redes visíveis, para diagnosticar senha, sinal ou rede 5 GHz
+void diagnoseWifi() {
+  wl_status_t status = WiFi.status();
+  const char* motivo =
+      status == WL_NO_SSID_AVAIL  ? "rede não encontrada (nome errado, longe ou só 5 GHz)" :
+      status == WL_CONNECT_FAILED ? "conexão recusada (senha errada?)" :
+      status == WL_DISCONNECTED   ? "não autenticou (senha errada ou sinal fraco)" :
+                                    "outro";
+  Serial.printf("  Motivo: status %d, %s\n", status, motivo);
+
+  WiFi.disconnect();
+  int n = WiFi.scanNetworks();
+  Serial.printf("  Redes 2,4 GHz visíveis: %d (* = a configurada)\n", n);
+  for (int i = 0; i < n; i++) {
+    Serial.printf("   %s %-32s sinal %4d dBm  canal %2d\n",
+                  WiFi.SSID(i) == WIFI_SSID ? "*" : " ",
+                  WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i));
+  }
+  WiFi.scanDelete();
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);  // volta a tentar em segundo plano
+}
+
 void connectWifi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -67,7 +84,12 @@ void connectWifi() {
     delay(500);
     Serial.print(".");
   }
-  Serial.println(WiFi.status() == WL_CONNECTED ? " conectado." : " falhou (nova tentativa depois).");
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf(" conectado. IP %s, sinal %d dBm\n", WiFi.localIP().toString().c_str(), WiFi.RSSI());
+  } else {
+    Serial.println(" falhou (nova tentativa depois).");
+    diagnoseWifi();
+  }
   lastWifiAttemptMs = millis();
 }
 
@@ -97,26 +119,24 @@ void syncClock() {
 // ---------- Sensores ----------
 
 int readSoilRaw() {
+  // A sonda resistiva corrói por eletrólise se ficar energizada o tempo todo:
+  // liga o módulo só para a leitura (cerca de 0,3 s por minuto)
+  digitalWrite(SOIL_POWER_PIN, HIGH);
+  delay(200);  // estabilização do módulo
+
   // Média de 16 amostras para reduzir o ruído do ADC
   uint32_t sum = 0;
   for (int i = 0; i < 16; i++) {
     sum += analogRead(SOIL_PIN);
     delay(5);
   }
+  digitalWrite(SOIL_POWER_PIN, LOW);
   return sum / 16;
 }
 
 float soilPercent(int raw) {
   float pct = 100.0f * (SOIL_DRY_RAW - raw) / (float)(SOIL_DRY_RAW - SOIL_WET_RAW);
   return constrain(pct, 0.0f, 100.0f);
-}
-
-void updateLeds(float soilPct) {
-  bool dry = soilPct < SOIL_DRY_BELOW_PCT;
-  bool wet = soilPct > SOIL_WET_ABOVE_PCT;
-  digitalWrite(LED_RED, dry);
-  digitalWrite(LED_YELLOW, wet);
-  digitalWrite(LED_GREEN, !dry && !wet);
 }
 
 // O DHT11 falha leituras esporádicas; tenta até 3 vezes
@@ -267,7 +287,6 @@ void takeReading() {
   bool dhtOk = readDht(temperature, humidity);
   int soilRaw = readSoilRaw();
   float soilPct = soilPercent(soilRaw);
-  updateLeds(soilPct);
 
   struct tm utc;
   gmtime_r(&now, &utc);
@@ -290,11 +309,10 @@ void setup() {
   Serial.println();
   Serial.printf("SMART GARDEN 2.0 — firmware %s — nó %s\n", FW_VERSION, DEVICE_ID);
 
-  pinMode(LED_GREEN, OUTPUT);
-  pinMode(LED_YELLOW, OUTPUT);
-  pinMode(LED_RED, OUTPUT);
   analogReadResolution(12);
   analogSetPinAttenuation(SOIL_PIN, ADC_11db);  // faixa de leitura até ~3,3 V
+  pinMode(SOIL_POWER_PIN, OUTPUT);
+  digitalWrite(SOIL_POWER_PIN, LOW);
   dht.begin();
 
   if (!LittleFS.begin(true)) {

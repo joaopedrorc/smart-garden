@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs"
+    "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs",
+    "db:rename-device": "node --env-file=.env.local scripts/rename-device.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.14.0",
