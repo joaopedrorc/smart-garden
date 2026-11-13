@@ -8,4 +8,4 @@
 // Produção: URL da aplicação publicada. Desenvolvimento: http://IP-DO-COMPUTADOR:3000/api/telemetry
 #define API_URL        "https://SEU-APP.vercel.app/api/telemetry"
 #define DEVICE_API_KEY "mesmo valor de DEVICE_API_KEY no .env.local"
-#define DEVICE_ID      "horta-franca-01"
+#define DEVICE_ID      "horta-uberlandia-01"

@@ -24,6 +24,7 @@ interface Reading {
 
 interface Device {
   id: string;
+  name: string | null;
   // Calculado no banco: recebeu dados nos últimos 5 minutos
   online: boolean;
 }
@@ -108,7 +109,7 @@ export function SensorLive({ device, readings }: { device: Device | null; readin
           <CardContent>
             <div className="text-2xl font-bold">{online ? "Online" : "Offline"}</div>
             <p className="text-xs text-muted-foreground">
-              {device.id} · {readings.length} leituras · {last.rssi_dbm ?? "—"} dBm
+              {device.name ?? device.id} · {readings.length} leituras · {last.rssi_dbm ?? "—"} dBm
             </p>
           </CardContent>
         </Card>
